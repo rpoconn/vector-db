@@ -66,7 +66,7 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests"]
+files = ["src", "tests", "scripts"]
 mypy_path = "src"
 explicit_package_bases = true
 
@@ -87,3 +87,4 @@ markers = [
 [tool.coverage.run]
 source = ["app"]
 branch = true
+concurrency = ["thread", "greenlet"]

@@ -8,6 +8,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.features.health.router import router as health_router
+from app.features.products.router import mount_product_images
+from app.features.products.router import router as products_router
 from app.shared.config import Settings, get_settings
 from app.shared.database import Database
 from app.shared.logging import configure_logging
@@ -21,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        settings.images_dir.mkdir(parents=True, exist_ok=True)
         database = Database(settings.database_url)
         await database.create_all()
         app.state.settings = settings
@@ -41,6 +44,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health_router)
+    app.include_router(products_router)
+    mount_product_images(app, settings.images_dir)
     return app
 
 

@@ -14,6 +14,7 @@ def settings(tmp_path: Path) -> Settings:
     return Settings(
         env="test",
         database_url=f"sqlite+aiosqlite:///{(tmp_path / 'test.db').as_posix()}",
+        images_dir=tmp_path / "images",
         _env_file=None,
     )
 

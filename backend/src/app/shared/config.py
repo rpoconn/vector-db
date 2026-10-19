@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     database_url: str = _default_database_url()
+    images_dir: Path = DATA_DIR / "images"
+    abo_dir: Path = DATA_DIR / "abo"
     secret_key: SecretStr = SecretStr("dev-insecure-secret-change-me")
     frontend_url: str = "http://localhost:5173"
 
