@@ -1,7 +1,7 @@
 from app.features.products.repository import ProductRepository
 from app.shared.database import Database
 
-from .conftest import CATALOG_SIZE, make_product
+from ...catalog import CATALOG_SIZE, make_product
 
 
 async def test_list_page_orders_by_id_and_counts_total(

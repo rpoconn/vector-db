@@ -28,6 +28,11 @@ class ProductRepository:
         )
         return rows.all(), total or 0
 
+    async def list_all(self) -> Sequence[Product]:
+        """Every product ordered by id, without images."""
+        rows = await self._session.scalars(select(Product).order_by(Product.id))
+        return rows.all()
+
     async def get(self, product_id: str) -> Product | None:
         rows = await self._session.scalars(self._with_images().where(Product.id == product_id))
         return rows.one_or_none()

@@ -10,6 +10,7 @@ from app.features.products.repository import ProductRepository
 from app.features.products.schemas import (
     CategoryOut,
     ProductDetail,
+    ProductIndexEntry,
     ProductListParams,
     ProductSummary,
 )
@@ -49,6 +50,10 @@ class ProductService:
         products = await self._repository.get_by_ids(product_ids)
         return [ProductSummary.from_model(product) for product in products]
 
+    async def list_index_entries(self) -> list[ProductIndexEntry]:
+        """Searchable fields of the whole catalog, ordered by id."""
+        return [ProductIndexEntry.from_model(p) for p in await self._repository.list_all()]
+
     async def list_categories(self) -> list[CategoryOut]:
         return [
             CategoryOut(name=name, product_count=count)
@@ -56,5 +61,9 @@ class ProductService:
         ]
 
 
-def get_product_service(session: Annotated[AsyncSession, Depends(get_session)]) -> ProductService:
+def build_product_service(session: AsyncSession) -> ProductService:
     return ProductService(ProductRepository(session))
+
+
+def get_product_service(session: Annotated[AsyncSession, Depends(get_session)]) -> ProductService:
+    return build_product_service(session)

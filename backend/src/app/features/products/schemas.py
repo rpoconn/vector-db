@@ -69,3 +69,27 @@ class ProductDetail(ProductSummary):
 class CategoryOut(BaseModel):
     name: str
     product_count: int
+
+
+class ProductIndexEntry(BaseModel):
+    """The searchable fields of a product, as handed to the search index."""
+
+    id: str
+    name: str
+    brand: str | None
+    category: str
+    color: str | None
+    description: str
+    price_cents: int
+
+    @classmethod
+    def from_model(cls, product: Product) -> Self:
+        return cls(
+            id=product.id,
+            name=product.name,
+            brand=product.brand,
+            category=product.category,
+            color=product.color,
+            description=product.description,
+            price_cents=product.price_cents,
+        )

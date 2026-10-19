@@ -7,51 +7,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi import FastAPI
-
-from app.features.products.models import Product, ProductImage
-from app.features.products.repository import ProductRepository
-from app.shared.database import Database
-
-CATEGORIES = ("Lamp", "Rug", "Sofa", "Grocery")
-CATALOG_SIZE = 20
 
 type ListingFactory = Callable[..., dict[str, Any]]
 type ArchiveBuilder = Callable[[Sequence[dict[str, Any]], Sequence[str]], tuple[Path, Path]]
-
-
-def make_product(index: int, *, image_count: int = 3) -> Product:
-    product_id = f"P{index:04d}"
-    return Product(
-        id=product_id,
-        name=f"Product {index}",
-        brand="Acme" if index % 2 else None,
-        category=CATEGORIES[index % len(CATEGORIES)],
-        description=f"Description of product {index}",
-        color="Blue",
-        price_cents=1000 + index,
-        source_url=f"https://www.amazon.com/dp/{product_id}",
-        images=[
-            ProductImage(position=p, path=f"{product_id}/{p}.jpg", width=256, height=200)
-            for p in reversed(range(image_count))  # inserted out of order on purpose
-        ],
-    )
-
-
-@pytest.fixture
-def database(app: FastAPI) -> Database:
-    db: Database = app.state.database
-    return db
-
-
-@pytest.fixture
-async def catalog(database: Database) -> list[str]:
-    """Seed CATALOG_SIZE products into the app database; returns their ids."""
-    products = [make_product(i) for i in range(CATALOG_SIZE)]
-    async with database.session_factory() as session:
-        await ProductRepository(session).replace_all(products)
-        await session.commit()
-    return [product.id for product in products]
 
 
 @pytest.fixture

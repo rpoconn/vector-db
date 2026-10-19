@@ -5,7 +5,7 @@ from httpx import AsyncClient
 
 from app.shared.config import Settings
 
-from .conftest import CATALOG_SIZE
+from ...catalog import CATALOG_SIZE
 
 
 async def test_list_products_returns_a_page_of_summaries(

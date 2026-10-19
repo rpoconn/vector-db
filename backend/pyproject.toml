@@ -79,9 +79,14 @@ warn_required_dynamic_aliases = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --import-mode=importlib"
+# Slow tests are opt-in: `uv run pytest -m slow` (or `-m ""` for everything).
+addopts = "-ra --strict-markers --import-mode=importlib -m 'not slow'"
 markers = [
     "slow: tests that load real models or build real indexes",
+]
+filterwarnings = [
+    # Windows without Developer Mode: the Hugging Face cache falls back to file copies.
+    "ignore:`huggingface_hub` cache-system uses symlinks:UserWarning",
 ]
 
 [tool.coverage.run]
