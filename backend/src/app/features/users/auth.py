@@ -14,6 +14,8 @@ from app.features.users.models import User
 from app.shared.config import Settings
 
 AUTH_COOKIE_NAME = "storefront_auth"
+OAUTH_LINK_COOKIE_NAME = "storefront_oauth_link"
+"""Binds an e-mailed OAuth link confirmation to the browser that started the sign-in."""
 OAUTH_CALLBACK_PATH = "/auth/callback"
 """Frontend route the providers redirect back to (`<frontend_url>/auth/callback/<provider>`)."""
 
@@ -39,6 +41,12 @@ def build_auth_backend(settings: Settings) -> AuthenticationBackend[User, uuid.U
 class OAuthProvider:
     client: BaseOAuth2[Any]
     display_name: str
+    verifies_email: bool
+    """Whether the provider proves the account holder receives mail at the e-mail it returns.
+
+    When False, we e-mail a confirmation link before the identity can sign in for the first
+    time, since the e-mail address is what links it to (or creates) an account.
+    """
 
     @property
     def name(self) -> str:
@@ -62,7 +70,12 @@ def build_oauth_providers(settings: Settings) -> list[OAuthProvider]:
     """
     providers: list[OAuthProvider] = []
     if google := _credentials(settings.google_client_id, settings.google_client_secret):
-        providers.append(OAuthProvider(GoogleOAuth2(*google), "Google"))
+        # The People API's primary address of a Google account is one Google has verified.
+        providers.append(OAuthProvider(GoogleOAuth2(*google), "Google", verifies_email=True))
     if microsoft := _credentials(settings.microsoft_client_id, settings.microsoft_client_secret):
-        providers.append(OAuthProvider(MicrosoftGraphOAuth2(*microsoft), "Microsoft"))
+        # httpx-oauth returns `userPrincipalName`: in work/school tenants an admin-assigned
+        # sign-in name that need not be a mailbox the user controls.
+        providers.append(
+            OAuthProvider(MicrosoftGraphOAuth2(*microsoft), "Microsoft", verifies_email=False)
+        )
     return providers

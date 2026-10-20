@@ -37,12 +37,19 @@ def outbox(app: FastAPI) -> Outbox:
 
 
 @pytest.fixture
-def register(client: AsyncClient) -> Register:
-    """Registers a password account; returns its id."""
+def register(client: AsyncClient, outbox: Outbox) -> Register:
+    """Registers a password account, verified via its e-mail unless `verify=False`; returns its id.
 
-    async def run(email: str, password: str = PASSWORD) -> str:
+    Leaves the outbox empty so tests only see the messages they cause.
+    """
+
+    async def run(email: str, password: str = PASSWORD, *, verify: bool = True) -> str:
         response = await client.post("/auth/register", json={"email": email, "password": password})
         assert response.status_code == 201, response.text
+        if verify:
+            verified = await client.post("/auth/verify", json={"token": outbox.token_for(email)})
+            assert verified.status_code == 200, verified.text
+        outbox.messages.clear()
         user_id: str = response.json()["id"]
         return user_id
 

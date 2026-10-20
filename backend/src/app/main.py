@@ -12,7 +12,7 @@ from app.features.products.router import mount_product_images
 from app.features.products.router import router as products_router
 from app.features.search.indexer import create_search_index
 from app.features.search.router import router as search_router
-from app.features.users.router import create_users_router
+from app.features.users.router import install_users
 from app.shared.config import Settings, get_settings
 from app.shared.database import Database
 from app.shared.email import create_email_sender
@@ -55,7 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health_router)
     app.include_router(products_router)
     app.include_router(search_router)
-    app.include_router(create_users_router(settings))
+    install_users(app, settings)
     mount_product_images(app, settings.images_dir)
     return app
 

@@ -31,7 +31,7 @@ async def test_register_login_and_read_current_user(
         "email": "bob@example.com",
         "is_active": True,
         "is_superuser": False,
-        "is_verified": False,
+        "is_verified": True,
     }
 
 
@@ -181,18 +181,57 @@ async def test_forgot_password_survives_email_delivery_failure(
     assert "Could not deliver 'Reset your Storefront password'" in caplog.text
 
 
-async def test_verify_email(client: AsyncClient, register: Register, outbox: Outbox) -> None:
-    await register("bob@example.com")
+async def test_registration_emails_a_verification_link_required_for_login(
+    client: AsyncClient, outbox: Outbox
+) -> None:
+    response = await client.post(
+        "/auth/register", json={"email": "bob@example.com", "password": PASSWORD}
+    )
+
+    assert response.status_code == 201
+    assert response.json()["is_verified"] is False
+    (message,) = outbox.messages
+    assert "http://localhost:5173/verify-email?token=" in message.body
+    response = await client.post(
+        "/auth/login", data={"username": "bob@example.com", "password": PASSWORD}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "LOGIN_USER_NOT_VERIFIED"
+
+    response = await client.post(
+        "/auth/verify", json={"token": outbox.token_for("bob@example.com")}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["is_verified"] is True
+    assert await login(client, "bob@example.com") == 204
+
+
+async def test_verification_link_can_be_requested_again(
+    client: AsyncClient, register: Register, outbox: Outbox
+) -> None:
+    await register("bob@example.com", verify=False)
 
     response = await client.post("/auth/request-verify-token", json={"email": "bob@example.com"})
 
     assert response.status_code == 202
-    assert "http://localhost:5173/verify-email?token=" in outbox.messages[-1].body
-    response = await client.post(
-        "/auth/verify", json={"token": outbox.token_for("bob@example.com")}
+    token = outbox.token_for("bob@example.com")
+    assert (await client.post("/auth/verify", json={"token": token})).status_code == 200
+
+
+async def test_password_reset_also_verifies_the_address(
+    client: AsyncClient, register: Register, outbox: Outbox
+) -> None:
+    await register("bob@example.com", verify=False)
+    await client.post("/auth/forgot-password", json={"email": "bob@example.com"})
+
+    await client.post(
+        "/auth/reset-password",
+        json={"token": outbox.token_for("bob@example.com"), "password": "a-brand-new-secret"},
     )
-    assert response.status_code == 200
-    assert response.json()["is_verified"] is True
+
+    assert await login(client, "bob@example.com", "a-brand-new-secret") == 204
+    assert (await client.get("/users/me")).json()["is_verified"] is True
 
 
 async def test_no_oauth_providers_without_credentials(client: AsyncClient) -> None:

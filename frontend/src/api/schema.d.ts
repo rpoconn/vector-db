@@ -268,6 +268,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/oauth/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Oauth Link
+         * @description Finish a provider sign-in after its e-mail confirmation link was opened.
+         */
+        post: operations["confirm_oauth_link_auth_oauth_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -355,6 +375,11 @@ export interface components {
              * @constant
              */
             database: "ok";
+        };
+        /** OAuthLinkConfirm */
+        OAuthLinkConfirm: {
+            /** Token */
+            token: string;
         };
         /** OAuthProviderOut */
         OAuthProviderOut: {
@@ -1206,6 +1231,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OAuthProviderOut"][];
+                };
+            };
+        };
+    };
+    confirm_oauth_link_auth_oauth_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthLinkConfirm"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Link forged, expired, or opened in a different browser. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
