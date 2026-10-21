@@ -46,6 +46,25 @@ class LoggingEmailSender:
             logger.info("E-mail to %s: %s", message.to, message.subject)
 
 
+class RecordingEmailSender(LoggingEmailSender):
+    """Logs messages and keeps them in memory so tests (and the e2e mailbox) can read them."""
+
+    def __init__(self, *, include_body: bool = True) -> None:
+        super().__init__(include_body=include_body)
+        self.messages: list[OutgoingEmail] = []
+
+    async def send(self, message: OutgoingEmail) -> None:
+        await super().send(message)
+        self.messages.append(message)
+
+    def messages_to(self, to: str) -> list[OutgoingEmail]:
+        """Messages addressed to `to` (case-insensitively), oldest first."""
+        return [m for m in self.messages if m.to.lower() == to.lower()]
+
+    def clear(self) -> None:
+        self.messages.clear()
+
+
 def is_transient_smtp_error(exc: BaseException) -> bool:
     """Connection problems and 4xx replies; 5xx replies are permanent."""
     if isinstance(exc, aiosmtplib.SMTPResponseException):
@@ -101,6 +120,8 @@ class SmtpEmailSender(LoggingEmailSender):
 
 def create_email_sender(settings: Settings) -> EmailSender:
     include_body = settings.env != "prod"
+    if settings.env == "test":
+        return RecordingEmailSender(include_body=include_body)
     if settings.smtp_host is None:
         return LoggingEmailSender(include_body=include_body)
     return SmtpEmailSender(

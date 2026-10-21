@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:8000'
+// The e2e run uses a second port so it never collides with a dev server.
+const PORT = Number(process.env.PORT ?? 5173)
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,7 +16,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    port: 5173,
+    port: PORT,
     strictPort: true,
     proxy: {
       '/api': {

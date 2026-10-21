@@ -230,11 +230,10 @@ def build_catalog(
             logger.warning("Only %d of %d requested products available", len(catalog), count)
 
         _remove_stale_image_dirs(images_dir, keep={product.id for product in catalog})
-        targets = {
-            image.archive_member: images_dir / image.path
-            for product in catalog
-            for image in product.images
-        }
+        targets: defaultdict[str, list[Path]] = defaultdict(list)
+        for product in catalog:
+            for image in product.images:
+                targets[image.archive_member].append(images_dir / image.path)
         written = archive.extract(targets)
 
     categories = Counter(product.category for product in catalog)

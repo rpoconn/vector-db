@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.features.health.router import router as health_router
+from app.features.mailbox.router import router as mailbox_router
 from app.features.products.router import mount_product_images
 from app.features.products.router import router as products_router
 from app.features.search.indexer import create_search_index
@@ -56,6 +57,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(products_router)
     app.include_router(search_router)
     install_users(app, settings)
+    if settings.env == "test":
+        app.include_router(mailbox_router)
     mount_product_images(app, settings.images_dir)
     return app
 

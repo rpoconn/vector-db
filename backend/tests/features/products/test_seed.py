@@ -37,7 +37,7 @@ def test_images_archive_reads_index_and_extracts_selected_members(
 
     with AboImagesArchive(images_tar) as archive:
         index = archive.read_index()
-        written = archive.extract({index["img-b"].member_name: tmp_path / "out" / "b.jpg"})
+        written = archive.extract({index["img-b"].member_name: [tmp_path / "out" / "b.jpg"]})
 
     assert index["img-a"] == AboImage(
         image_id="img-a", height=250, width=500, path="00/00000000.jpg"
@@ -171,3 +171,22 @@ async def test_seed_catalog_writes_products_and_images(
         assert (images_dir / product.id / "0.jpg").read_bytes() == f"{product.id}-main".encode()
         assert (images_dir / product.id / "1.jpg").read_bytes() == f"{product.id}-side".encode()
     assert not stale.parent.exists()
+
+
+async def test_seed_catalog_copies_images_shared_by_variant_listings(
+    abo_archives: ArchiveBuilder,
+    listing: ListingFactory,
+    database: Database,
+    tmp_path: Path,
+) -> None:
+    # Variants of one item (e.g. sheet sizes) list the same ABO images.
+    shared = {"main_image_id": "sheet-main", "other_image_id": ["sheet-side"]}
+    records = [listing("KING", "SHEET", **shared), listing("QUEEN", "SHEET", **shared)]
+    listings_tar, images_tar = abo_archives(records, ["sheet-main", "sheet-side"])
+    images_dir = tmp_path / "catalog-images"
+
+    await seed_catalog(database, listings_tar, images_tar, images_dir, count=2, seed=1)
+
+    for product_id in ("KING", "QUEEN"):
+        assert (images_dir / product_id / "0.jpg").read_bytes() == b"sheet-main"
+        assert (images_dir / product_id / "1.jpg").read_bytes() == b"sheet-side"

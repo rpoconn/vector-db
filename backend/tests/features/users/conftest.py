@@ -5,21 +5,15 @@ import pytest
 from fastapi import FastAPI
 from httpx import AsyncClient
 
-from app.shared.email import OutgoingEmail
+from app.shared.email import RecordingEmailSender
 
 PASSWORD = "correct-horse-battery"
 
 type Register = Callable[..., Awaitable[str]]
 
 
-class Outbox:
-    """EmailSender test double that keeps every message."""
-
-    def __init__(self) -> None:
-        self.messages: list[OutgoingEmail] = []
-
-    async def send(self, message: OutgoingEmail) -> None:
-        self.messages.append(message)
+class Outbox(RecordingEmailSender):
+    """The app's recording sender, plus token extraction for the e-mailed links."""
 
     def token_for(self, to: str) -> str:
         """The `token` query parameter of the last link e-mailed to `to`."""
@@ -31,7 +25,7 @@ class Outbox:
 
 @pytest.fixture
 def outbox(app: FastAPI) -> Outbox:
-    box = Outbox()
+    box = Outbox(include_body=False)
     app.state.email_sender = box
     return box
 

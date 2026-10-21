@@ -248,6 +248,80 @@ export interface paths {
         patch: operations["users_patch_user_users__id__patch"];
         trace?: never;
     };
+    "/auth/google/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Oauth:Google.Cookie.Authorize */
+        get: operations["oauth_google_cookie_authorize_auth_google_authorize_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Oauth:Google.Cookie.Callback
+         * @description The response varies based on the authentication backend used.
+         */
+        get: operations["oauth_google_cookie_callback_auth_google_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/microsoft/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Oauth:Microsoft.Cookie.Authorize */
+        get: operations["oauth_microsoft_cookie_authorize_auth_microsoft_authorize_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/microsoft/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Oauth:Microsoft.Cookie.Callback
+         * @description The response varies based on the authentication backend used.
+         */
+        get: operations["oauth_microsoft_cookie_callback_auth_microsoft_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/providers": {
         parameters: {
             query?: never;
@@ -307,7 +381,7 @@ export interface components {
              * Scope
              * @default
              */
-            scope: string;
+            scope?: string;
             /** Client Id */
             client_id?: string | null;
             /**
@@ -375,6 +449,22 @@ export interface components {
              * @constant
              */
             database: "ok";
+        };
+        /** OAuth2AuthorizeResponse */
+        OAuth2AuthorizeResponse: {
+            /** Authorization Url */
+            authorization_url: string;
+        };
+        /**
+         * OAuthEmailConfirmationSent
+         * @description The provider sign-in is paused until the link e-mailed to `email` is opened.
+         */
+        OAuthEmailConfirmationSent: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
         };
         /** OAuthLinkConfirm */
         OAuthLinkConfirm: {
@@ -477,17 +567,17 @@ export interface components {
              * Is Active
              * @default true
              */
-            is_active: boolean | null;
+            is_active?: boolean | null;
             /**
              * Is Superuser
              * @default false
              */
-            is_superuser: boolean | null;
+            is_superuser?: boolean | null;
             /**
              * Is Verified
              * @default false
              */
-            is_verified: boolean | null;
+            is_verified?: boolean | null;
         };
         /** UserRead */
         UserRead: {
@@ -505,17 +595,17 @@ export interface components {
              * Is Active
              * @default true
              */
-            is_active: boolean;
+            is_active?: boolean;
             /**
              * Is Superuser
              * @default false
              */
-            is_superuser: boolean;
+            is_superuser?: boolean;
             /**
              * Is Verified
              * @default false
              */
-            is_verified: boolean;
+            is_verified?: boolean;
         };
         /** UserUpdate */
         UserUpdate: {
@@ -1203,6 +1293,163 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    oauth_google_cookie_authorize_auth_google_authorize_get: {
+        parameters: {
+            query?: {
+                scopes?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuth2AuthorizeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    oauth_google_cookie_callback_auth_google_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                code_verifier?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    oauth_microsoft_cookie_authorize_auth_microsoft_authorize_get: {
+        parameters: {
+            query?: {
+                scopes?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuth2AuthorizeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    oauth_microsoft_cookie_callback_auth_microsoft_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                code_verifier?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description First sign-in with a provider that does not verify e-mail addresses: a confirmation link was e-mailed and must be opened in this browser (`POST /auth/oauth/confirm`). */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthEmailConfirmationSent"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorModel"];
+                };
             };
             /** @description Validation Error */
             422: {

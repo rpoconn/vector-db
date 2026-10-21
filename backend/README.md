@@ -44,8 +44,15 @@ The index is built on startup from the catalog:
   Re-seeding with the same products keeps the cache.
 - Set `APP_VECTOR_STORE_PERSIST_DIR=./data/chroma` to keep the Chroma index on disk instead of in memory.
 
-Tests (and later the e2e run) use `APP_EMBEDDER=hashing` and `APP_VECTOR_STORE=numpy`: a deterministic
+Tests and the e2e run use `APP_EMBEDDER=hashing` and `APP_VECTOR_STORE=numpy`: a deterministic
 bag-of-words embedder and an exact NumPy scan behind the same interfaces, so no model download is needed.
+
+### Synthetic demo catalog
+
+`scripts/serve_e2e.py` seeds a throwaway catalog under `data/e2e/` (48 products in six categories with
+generated PNG "angles", from `app.features.products.demo`) and serves it with the fast doubles above and
+`APP_ENV=test`. The frontend's `bun run e2e` starts it on port 8001; it also makes a quick demo without
+the dataset: `uv run python scripts/serve_e2e.py --port 8000 --frontend-url http://localhost:5173`.
 
 ```sh
 uv run python scripts/eval_search.py                       # top-5 hits for a dozen sample queries
@@ -103,6 +110,10 @@ APP_SMTP_HOST=localhost uv run uvicorn app.main:app --reload
 
 SMTP delivery is retried on connection errors and 4xx replies. If it still fails, the error is logged and the
 request succeeds anyway.
+
+Under `APP_ENV=test` messages are kept in memory instead and exposed at `GET /_test/mailbox?to=<address>`
+(`DELETE` clears them). The e2e specs read their confirmation and reset links from there. The route is not
+mounted in other environments and is left out of the OpenAPI spec.
 
 ### OAuth providers
 

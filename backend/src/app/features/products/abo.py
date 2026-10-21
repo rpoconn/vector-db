@@ -8,7 +8,7 @@ import csv
 import gzip
 import logging
 import tarfile
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from types import TracebackType
 from typing import Self
@@ -138,21 +138,27 @@ class AboImagesArchive:
             images = (AboImage.model_validate(row) for row in rows)
             return {image.image_id: image for image in images}
 
-    def extract(self, targets: Mapping[str, Path]) -> int:
-        """Copy archive members (by member name) to the given paths; returns files written."""
+    def extract(self, targets: Mapping[str, Sequence[Path]]) -> int:
+        """Copy archive members (by member name) to the given paths; returns files written.
+
+        A member can go to several paths: ABO listings for variants of one item (sizes,
+        colors) share image files.
+        """
         written = 0
         for member in self.tar.getmembers():
-            destination = targets.get(member.name)
-            if destination is None or not member.isfile():
+            destinations = targets.get(member.name)
+            if not destinations or not member.isfile():
                 continue
             source = self.tar.extractfile(member)
             if source is None:
                 continue
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            with source, destination.open("wb") as target:
-                target.write(source.read())
-            written += 1
-        missing = len(targets) - written
+            with source:
+                data = source.read()
+            for destination in destinations:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(data)
+                written += 1
+        missing = sum(len(destinations) for destinations in targets.values()) - written
         if missing:
             logger.warning("%d requested images were not found in %s", missing, self._archive)
         return written
